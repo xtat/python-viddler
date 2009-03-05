@@ -1,0 +1,5 @@
+-See doctest module
+-Switch to POST if requst.len >= 2048
+-Split out videos. users. to satisfy annoying namespacing
+-Tests should use framework
+-Make it possible to use without user/pass

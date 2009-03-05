@@ -1,0 +1,7 @@
+Viddler python API 0.3
+
+Install with sudo python ./setup.py install
+
+no docs yet-- see examples/ and "pydoc viddler.Viddler"
+
+Todd Troxell <todd@viddler.com>
