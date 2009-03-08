@@ -19,8 +19,13 @@
 import MultipartPostHandler
 import urllib2
 from urllib import urlencode
-#from elementtree import ElementTree
-from xml.etree.ElementTree import ElementTree
+
+# ElementTree got moved in 2.5
+try:
+  from xml.etree.ElementTree import ElementTree
+except:
+  from elementtree import ElementTree
+  
 from StringIO import StringIO
 from time import time
 
@@ -30,7 +35,7 @@ try:
 except ImportError, e:
   use_pycurl = False
 
-DEBUG = True
+DEBUG = False
 # viddler endpoint
 API_URL="http://api.viddler.com/rest/v1/"
 # viddler session expires after 5 mins
@@ -143,7 +148,7 @@ class Viddler(object):
               "sessionid": self.session['id']}
     return self._rpc(params)
 
-  def _pycurl_upload(self, params, filepath):
+  def _pycurl_upload(self, params, filepath, progress_func):
     c = pycurl.Curl()
     del params['file']
     endpoint = params['endpoint']
@@ -154,12 +159,17 @@ class Viddler(object):
     params['api_key'] = self.API_KEY.encode()
     curlpost = params.items()
     curlpost.append(("file", (c.FORM_FILE, filepath.encode())))
-    print curlpost
+    if DEBUG:
+        print curlpost
     out = StringIO()
     c.setopt(c.POST, 1)
     c.setopt(c.URL, endpoint)
     c.setopt(c.HTTPPOST, curlpost)
-    c.setopt(c.VERBOSE, 1)
+    if DEBUG:
+        c.setopt(c.VERBOSE, 1)
+    if progress_func:
+        c.setopt(c.PROGRESSFUNCTION, progress_func)
+        c.setopt(c.NOPROGRESS, 0)
     c.setopt(pycurl.WRITEFUNCTION, out.write)
     c.perform()
     c.close()
@@ -167,7 +177,8 @@ class Viddler(object):
     return self._process_response(out.read())
     
   @have_valid_session
-  def upload(self, path, title, tags, description, make_public=False):
+  def upload(self, path, title, tags, description, make_public=False,
+             progress_func=None):
     """Uploads a video to viddler.
     path: path to video file
     title: video title
@@ -193,7 +204,7 @@ class Viddler(object):
 
     params['endpoint'] = self.prepareUpload()['endpoint']
     if use_pycurl:
-      ret = self._pycurl_upload(params, path)
+      ret = self._pycurl_upload(params, path, progress_func)
     else:
       ret = self._rpc(params)
     fh.close()
