@@ -76,7 +76,7 @@ class Viddler(object):
     self.PASSWORD = PASSWORD
     self.session = {'id': None, 'ctime': None, 'expires': None}
 
-  def _rpc(self, params):
+  def _rpc(self, params, returntype=dict):
     if not params.has_key('method'):
       raise InternalApiError("Attempt to call _rpc with no method parameter")
     params["api_key"] = self.API_KEY
@@ -98,9 +98,9 @@ class Viddler(object):
       data = urlencode(tuple_list)
       res = urllib2.urlopen(API_URL, data)
       response = res.read()
-    return self._process_response(response)
+    return self._process_response(response, returntype)
     
-  def _process_response(self, response):
+  def _process_response(self, response, returntype=dict):
     if DEBUG:
       print response
     sio = StringIO()
@@ -109,6 +109,18 @@ class Viddler(object):
     et = ElementTree()
     et.parse(sio)
     return_dict = {}
+    if returntype==list:
+        return_list = []
+        for elem in et.getiterator():
+            if return_dict.has_key(elem.tag):
+                return_list.append(return_dict)
+                return_dict = {}
+            else:
+                return_dict[elem.tag] = elem.text
+            if return_dict.has_key("error"):
+                raise RemoteError(return_dict)
+        return return_list
+
     for elem in et.getiterator():
       return_dict[elem.tag] =  elem.text
     if return_dict.has_key("error"):
@@ -401,7 +413,7 @@ class Viddler(object):
 	     "user": user,
 	     "page": page,
 	     "per_page": per_page}
-    return self._rpc(params)
+    return self._rpc(params, returntype=list)
   
   def getByTag(self, tag, page=1, per_page=20):
     """"Get videos by tag.
@@ -416,9 +428,9 @@ class Viddler(object):
 	      "tag": tag,
 	      "page": page,
 	      "per_page": per_page}
-    return self._rpc(params)
+    return self._rpc(params, returntype=list)
     
   def getFeatured(self):
     """Get currently featured videos"""
     params = {"method": "viddler.videos.getFeatured"}
-    return self._rpc(params)
+    return self._rpc(params, returntype=list)
