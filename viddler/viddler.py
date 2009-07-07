@@ -114,7 +114,7 @@ class Viddler(object):
         for elem in et.getiterator():
             if return_dict.has_key(elem.tag):
                 return_list.append(return_dict)
-                return_dict = {}
+                return_dict = {elem.tag: elem.text}
             else:
                 return_dict[elem.tag] = elem.text
             if return_dict.has_key("error"):
