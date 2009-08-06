@@ -244,6 +244,20 @@ class Viddler(object):
     return self._rpc(params)
 
   @have_valid_session
+  def setThumbnail(self, video_id, timepoint=None, file=None):
+    """Sets new thumbnail on video -- specify timepoint or filepath
+       timepoint is specified in seconds."""
+    #one or the other is required...
+    if not timepoint and not file:
+      raise InvalidParameterError
+    # add support for images! 
+    params = {"method": "viddler.videos.setThumbnail",
+              "sessionid": self.session['id'],
+              "video_id": video_id,
+              "timepoint": timepoint }
+    return self._rpc(params)
+
+  @have_valid_session
   def commentsAdd(self, video_id, text):
     """Add a comment to a video"""
     params = {"method": "viddler.videos.comments.add",
