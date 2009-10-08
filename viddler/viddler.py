@@ -119,6 +119,8 @@ class Viddler(object):
                 return_dict[elem.tag] = elem.text
             if return_dict.has_key("error"):
                 raise RemoteError(return_dict)
+        # add final dict to the list
+        return_list.append(return_dict)
         return return_list
 
     for elem in et.getiterator():
