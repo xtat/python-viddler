@@ -19,10 +19,11 @@
 import MultipartPostHandler
 import urllib2
 from urllib import urlencode
+import xmldict
 
 # ElementTree got moved in 2.5
 try:
-  from xml.etree.ElementTree import ElementTree
+  from xml.etree.ElementTree import ElementTree, XML
 except:
   from elementtree import ElementTree
   
@@ -99,36 +100,38 @@ class Viddler(object):
       res = urllib2.urlopen(API_URL, data)
       response = res.read()
     return self._process_response(response, returntype)
-    
+   
   def _process_response(self, response, returntype=dict):
+    """ big ugly function.. slowly improving. """
     if DEBUG:
       print response
-    sio = StringIO()
-    sio.write(response)
-    sio.seek(0)
-    et = ElementTree()
-    et.parse(sio)
-    return_dict = {}
-    if returntype==list:
-        return_list = []
-        for elem in et.getiterator():
+    # Parse XML
+    root = XML(response)
+    # Dict repsonse
+    if returntype==dict:
+        response_data = xmldict.XmlDictConfig(root)
+        if response_data.has_key("error"):
+            raise RemoteError(response_data)
+    # List response
+    elif returntype==list:
+        response_data = []
+        return_dict = {}
+        for elem in root.getiterator():
             if return_dict.has_key(elem.tag):
-                return_list.append(return_dict)
+                response_data.append(return_dict)
                 return_dict = {elem.tag: elem.text}
             else:
                 return_dict[elem.tag] = elem.text
             if return_dict.has_key("error"):
                 raise RemoteError(return_dict)
         # add final dict to the list
-        return_list.append(return_dict)
-        return return_list
-
-    for elem in et.getiterator():
-      return_dict[elem.tag] =  elem.text
-    if return_dict.has_key("error"):
-      raise RemoteError(return_dict)
-    return return_dict
-  
+        response_data.append(return_dict)
+    else:
+        raise InvalidParameterError("unkown datatype: %s" % (returntype))
+    if DEBUG:
+      print response_data
+    return response_data
+ 
   def have_valid_session(func):
     """Decorator for making sure we have a valid session"""
     def wrapper(self, *arg, **kwarg):
