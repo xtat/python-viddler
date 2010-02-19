@@ -419,7 +419,7 @@ class Viddler(object):
     return self._rpc(params)
   
   @have_valid_session
-  def getByUser(self, user, page=1, per_page=20):
+  def getByUser(self, user, tags="", page=1, per_page=20):
     """Get videos by username.
     user: viddler username
     page: (optional) page of results (1,2,3,...)
@@ -430,6 +430,7 @@ class Viddler(object):
     params = {"method": "viddler.videos.getByUser",
              "sessionid": self.session['id'],
 	     "user": user,
+       "tags": tags,
 	     "page": page,
 	     "per_page": per_page}
     return self._rpc(params, returntype=list)
