@@ -242,7 +242,7 @@ class Viddler(object):
   @have_valid_session
   def setPermaLink(self, video_id, permalink):
     """Set the permalink for a video (link when clicking on the flash)"""
-    params = {"method": "viddler.videos.setPermaLink",
+    params = {"method": "viddler.videos.setPermalink",
               "sessionid": self.session['id'],
               "video_id": video_id,
               "permalink": permalink}
