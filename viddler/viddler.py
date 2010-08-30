@@ -117,7 +117,7 @@ class Viddler(object):
         response_data = []
         return_dict = {}
         for elem in root.getiterator():
-            if return_dict.has_key(elem.tag):
+            if elem.tag == root_tag and return_dict.has_key(elem.tag):
                 response_data.append(return_dict)
                 return_dict = {elem.tag: elem.text}
             else:
