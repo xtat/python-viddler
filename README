@@ -1,3 +1,6 @@
+** I have just a added v2 support prototype -- see testv2 for usgae
+API is subject to change **
+
 Viddler python API 0.3
 
 Install with sudo python ./setup.py install
