@@ -78,6 +78,41 @@ class ViddlerV2(object):
         data = simplejson.load(buf)
         return data
     
+    def _pycurl_upload(self, params, filepath, progress_func):
+        c = pycurl.Curl()
+        del params['file']
+        endpoint = params['endpoint']
+        del params['endpoint']
+
+        for key in params:
+            params[key] = params[key].encode('UTF-8')
+
+        if self.session_id:
+            params['sessionid'] = self.session_id
+        if self.api_key:
+            params['api_key'] = self.api_key
+
+        curlpost = params.items()
+        curlpost.append(("file", (c.FORM_FILE, filepath.encode())))
+        if DEBUG:
+            print curlpost
+        out = StringIO()
+        c.setopt(c.POST, 1)
+        c.setopt(c.URL, endpoint)
+        c.setopt(c.HTTPPOST, curlpost)
+        if DEBUG:
+            c.setopt(c.VERBOSE, 1)
+        if progress_func:
+            c.setopt(c.PROGRESSFUNCTION, progress_func)
+            c.setopt(c.NOPROGRESS, 0)
+        c.setopt(pycurl.WRITEFUNCTION, out.write)
+        c.perform()
+        c.close()
+        out.seek(0)
+        data = simplejson.load(out)
+        return data
+    
+    
     def get(self, method, args={}):
         args['http_method'] = "GET"
         args['method'] = method
@@ -87,6 +122,18 @@ class ViddlerV2(object):
         args['http_method'] = 'POST'
         args['method'] = method
         return self._rpc(args)
+        
+    def upload(self, path, args={}, progress_func=None):
+        fh = open(path, 'r')
+        print self.get('viddler.videos.prepareUpload')
+        args['file'] = fh
+        args['endpoint'] = self.get('viddler.videos.prepareUpload')['upload']['endpoint']
+
+        args['http_method'] = 'POST'
+        ret = self._pycurl_upload(args, path, progress_func)
+        fh.close()
+        return ret
+    
 
     def test_echo(self):
         print self.get("echo")
