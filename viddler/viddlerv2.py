@@ -125,7 +125,6 @@ class ViddlerV2(object):
         
     def upload(self, path, args={}, progress_func=None):
         fh = open(path, 'r')
-        print self.get('viddler.videos.prepareUpload')
         args['file'] = fh
         args['endpoint'] = self.get('viddler.videos.prepareUpload')['upload']['endpoint']
 
